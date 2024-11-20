@@ -21,12 +21,12 @@ const Dashboard = () => {
     <Box m="20px">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
+        <Header title="Home" subtitle="Welcome Francisco" />
 
         <Box>
           <Button
             sx={{
-              backgroundColor: colors.blueAccent[700],
+              backgroundColor: colors.orangeAccent[500],
               color: colors.grey[100],
               fontSize: "14px",
               fontWeight: "bold",
