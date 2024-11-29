@@ -12,10 +12,29 @@ import GeographyChart from "../../components/GeographyChart";
 import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
+import { useEffect } from "react";
+import { db } from "../../firebase/config";
+import { collection, getDocs } from "firebase/firestore";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  useEffect(() => {
+    const niHistorialRef = collection(db, "carreras");
+
+    getDocs(niHistorialRef)
+      .then(response => {
+
+        console.log(
+          response.docs.map(doc => {
+            return { ...doc.data(), id: doc.id }
+          })
+        );
+
+      });
+
+  }, []);
 
   return (
     <Box m="20px">
