@@ -1,15 +1,16 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataTeam } from "../../data/mockData";
 import Header from "../../components/Header";
 import { useEffect, useState } from "react";
-import { db } from "../../firebase/config";
-import { collection, getDocs } from "firebase/firestore";
+import { fetchCarreras } from "../../services/firebaseService";
 
 const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const [rows, setRows] = useState([]);
+
   const columns = [
     { field: "id", headerName: "ID" },
     {
@@ -29,30 +30,25 @@ const Team = () => {
       type: "number",
       headerAlign: "left",
       align: "left",
-    }
+    },
   ];
 
   useEffect(() => {
-    const niHistorialRef = collection(db, "carreras");
+    const fetchData = async () => {
+      try {
+        const data = await fetchCarreras();
+        setRows(data);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      }
+    };
 
-    getDocs(niHistorialRef)
-      .then(response => {
-
-        console.log(
-          response.docs.map(doc => {
-            return { ...doc.data(), id: doc.id }
-          })
-        );
-
-      });
-
+    fetchData();
   }, []);
-
-
 
   return (
     <Box m="20px">
-      <Header title="Alumnos ingresados" subtitle="Alumnos ingresados" />
+      <Header title="Ingresos Trimestrales" subtitle="Alumnos ingresados por trimestre" />
       <Box
         m="40px 0 0 0"
         height="75vh"
@@ -82,7 +78,7 @@ const Team = () => {
           },
         }}
       >
-        <DataGrid checkboxSelection rows={mockDataTeam} columns={columns} />
+        <DataGrid checkboxSelection rows={rows} columns={columns} />
       </Box>
     </Box>
   );

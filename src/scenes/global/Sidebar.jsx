@@ -130,26 +130,27 @@ const Sidebar = () => {
               Data
             </Typography>
             <Item
-              title="Nuevo Ingreso"
+              title="Ingresos Trimestrales"
               to="/team"
               icon={<PeopleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
-            <Item
+            {/* <Item
               title="Egresados Histórico"
               to="/contacts"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
+
             <Item
               title="Activos Historial"
               to="/invoices"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
 
             {/* <Typography
               variant="h6"
