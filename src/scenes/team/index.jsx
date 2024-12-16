@@ -1,4 +1,9 @@
 import { Box, Button, useTheme, Select, MenuItem } from "@mui/material";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
@@ -14,10 +19,10 @@ const Team = () => {
 
   const [rows, setRows] = useState([]);
   const [allData, setAllData] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(""); 
+  const [selectedYear, setSelectedYear] = useState("");
   const [years, setYears] = useState([]);
-
-
+  const [openDialog, setOpenDialog] = useState(false);
+  const [fileToUpload, setFileToUpload] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,32 +66,44 @@ const Team = () => {
     });
 
     setAllData(processedData);
-    setRows(processedData); 
-    setYears([...uniqueYears].sort()); 
+    setRows(processedData);
+    setYears([...uniqueYears].sort());
   };
 
-  const handleFileUpload = async (event) => {
+  const handleFileChange = (event) => {
     const file = event.target.files[0];
-
     if (file) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: async (result) => {
-
-          try {
-            await updateCollection(result.data); 
-            alert("Colección actualizada correctamente");
-
-            const updatedData = await fetchCarreras();
-            processAndSetData(updatedData);
-          } catch (error) {
-            console.error("Error updating collection:", error);
-            alert("Ocurrió un error al actualizar la colección");
-          }
-        },
-      });
+      setFileToUpload(file); 
+      setOpenDialog(true);
     }
+  };
+
+  const handleConfirmUpload = async () => {
+    setOpenDialog(false);
+
+    if (!fileToUpload) return;
+
+    Papa.parse(fileToUpload, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (result) => {
+        try {
+          await updateCollection(result.data);
+          alert("Colección actualizada correctamente");
+
+          const updatedData = await fetchCarreras();
+          processAndSetData(updatedData);
+        } catch (error) {
+          console.error("Error updating collection:", error);
+          alert("Ocurrió un error al actualizar la colección");
+        }
+      },
+    });
+  };
+
+  const handleCancelUpload = () => {
+    setOpenDialog(false); 
+    setFileToUpload(null);
   };
 
   const handleYearChange = (event) => {
@@ -102,60 +119,85 @@ const Team = () => {
   };
 
   return (
-    <Box m="20px">
-      <Header title="Ingresos Trimestrales" subtitle="Alumnos ingresados por trimestre" />
-      <Box display="flex" alignItems="center" gap="20px" mb="20px">
-        <Button variant="contained" component="label">
-          Cargar CSV
-          <input type="file" accept=".csv" hidden onChange={handleFileUpload} />
-        </Button>
-        <Select
-          value={selectedYear}
-          onChange={handleYearChange}
-          displayEmpty
-          sx={{ minWidth: 120 }}
-        >
-          <MenuItem value="">
-            <em>Todos los años</em>
-          </MenuItem>
-          {years.map((year) => (
-            <MenuItem key={year} value={year}>
-              {year}
+    <>
+      <Box m="20px">
+        <Header title="Ingresos Trimestrales" subtitle="Alumnos ingresados por trimestre" />
+        <Box display="flex" alignItems="center" gap="20px" mb="20px">
+          <Button variant="contained" component="label">
+            Cargar CSV
+            <input type="file" accept=".csv" hidden onChange={handleFileChange} />
+          </Button>
+          <Select
+            value={selectedYear}
+            onChange={handleYearChange}
+            displayEmpty
+            sx={{ minWidth: 120 }}
+          >
+            <MenuItem value="">
+              <em>Todos los años</em>
             </MenuItem>
-          ))}
-        </Select>
+            {years.map((year) => (
+              <MenuItem key={year} value={year}>
+                {year}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Box
+          height="75vh"
+          sx={{
+            "& .MuiDataGrid-root": {
+              border: "none",
+            },
+            "& .MuiDataGrid-cell": {
+              borderBottom: "none",
+            },
+            "& .name-column--cell": {
+              color: colors.greenAccent[300],
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: colors.blueAccent[700],
+              borderBottom: "none",
+            },
+            "& .MuiDataGrid-virtualScroller": {
+              backgroundColor: colors.primary[400],
+            },
+            "& .MuiDataGrid-footerContainer": {
+              borderTop: "none",
+              backgroundColor: colors.blueAccent[700],
+            },
+            "& .MuiCheckbox-root": {
+              color: `${colors.greenAccent[200]} !important`,
+            },
+          }}
+        >
+          <DataGrid checkboxSelection rows={rows} columns={columns} />
+        </Box>
       </Box>
-      <Box
-        height="75vh"
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.greenAccent[300],
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.blueAccent[700],
-          },
-          "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
-          },
-        }}
+
+      <Dialog
+        open={openDialog}
+        onClose={handleCancelUpload}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
       >
-        <DataGrid checkboxSelection rows={rows} columns={columns} />
-      </Box>
-    </Box>
+        <DialogTitle id="alert-dialog-title">Confirmar actualización</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Cargar este archivo actualizará los datos existentes en la base de datos. Esto podría
+            afectar la información actual. ¿Deseas continuar?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelUpload} color="secondary">
+            Cancelar
+          </Button>
+          <Button onClick={handleConfirmUpload} color="primary" autoFocus>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
