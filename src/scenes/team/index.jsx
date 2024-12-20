@@ -134,7 +134,7 @@ const Team = () => {
             sx={{ minWidth: 120 }}
           >
             <MenuItem value="">
-              <em>Todos los años</em>
+              Todos
             </MenuItem>
             {years.map((year) => (
               <MenuItem key={year} value={year}>
